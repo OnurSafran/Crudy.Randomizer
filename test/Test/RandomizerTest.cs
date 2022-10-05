@@ -14,31 +14,31 @@ public class RandomizerTest
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = true,
+                ExcludeReturnedKeysForUniqueness = true,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = true
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                AddToExcludeList = true,
+                ExcludeReturnedKeysForUniqueness = true,
                 ClearZeros = true
             }
         };
@@ -63,6 +63,7 @@ public class RandomizerTest
         
         var values1 = randomizer.GetRandom(count);
 
+        
         values1.Count.Should().Be(expectedCount);
     }
     

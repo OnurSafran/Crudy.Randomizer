@@ -14,31 +14,31 @@ public class RandomizerBuilderTest
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = true,
+                ExcludeReturnedKeysForUniqueness = true,
                 ClearZeros = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                AddToExcludeList = false,
+                ExcludeReturnedKeysForUniqueness = false,
                 ClearZeros = true
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                AddToExcludeList = true,
+                ExcludeReturnedKeysForUniqueness = true,
                 ClearZeros = true
             }
         };

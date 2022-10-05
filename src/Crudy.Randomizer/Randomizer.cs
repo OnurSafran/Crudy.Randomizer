@@ -194,7 +194,7 @@ public class Randomizer<T> where T : notnull
             if(key?.Equals(default(T)) ?? true)
                 continue;
 
-            if(_randomizerConfiguration.AddToExcludeList)
+            if(_randomizerConfiguration.ExcludeReturnedKeysForUniqueness)
                 AddExclude(key);
             
             list.Add(key);
