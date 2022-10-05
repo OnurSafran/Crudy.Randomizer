@@ -1,5 +1,7 @@
 # About
 
+Easy to use weighted item randomizer for C#.
+
 It can act like item pool. Value demonstrates possibility
 
 It can act like marbles in a sack. Value demonstrates amount. When you draw, its amount will be reduced
@@ -37,13 +39,13 @@ ctor(RandomizerBuilderFactory factory){
 *Pool. Value demonstrates possibility*
 -
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }
 }).Build();
 
-var value = randomizer.GetRandom(1).FirstOrDefault();
+var value = randomizer.Draw(1).FirstOrDefault();
 ```
 value can be;
 * %20 --> 1
@@ -52,13 +54,13 @@ value can be;
 
 ---
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }, { 4, 100 }
 }).Build();
 
-var value = randomizer.GetRandom(1).FirstOrDefault();
+var value = randomizer.Draw(1).FirstOrDefault();
 ```
 value can be;
 * %10 --> 1
@@ -68,7 +70,7 @@ value can be;
 
 ---
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }, { 4, 100 }
@@ -76,7 +78,7 @@ var randomizer = builder
     4
 }).Build();
 
-var value = randomizer.GetRandom(1).FirstOrDefault();
+var value = randomizer.Draw(1).FirstOrDefault();
 ```
 value can be;
 * %20 --> 1
@@ -85,7 +87,7 @@ value can be;
 
 ---
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }, { 4, 100 }
@@ -94,7 +96,7 @@ var randomizer = builder
 }).Build();
 randomizer.Remove(3)
 
-var value = randomizer.GetRandom(1).FirstOrDefault();
+var value = randomizer.Draw(1).FirstOrDefault();
 ```
 value can be;
 * %40 --> 1
@@ -102,13 +104,13 @@ value can be;
 
 ---
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Pool).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }
 }).Build();
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 values count will be 10
 
@@ -122,13 +124,13 @@ values can be;
 -
 
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Sack).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Sack).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
 { 1, 2 }, { 2, 2 }, { 3, 2 }
 }).Build();
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 all keys will be removed after 6 iterations
 
@@ -138,13 +140,13 @@ values will contain two of every keys {1, 2, 3}
 
 ---
 ``` c#
-var builder = new RandomizerBuilderFactory(RandomizerMode.Sack).GetBuilder<int>()
+var builder = new RandomizerBuilderFactory(RandomizerMode.Sack).GetBuilder<int>();
 var randomizer = builder
 .Data(new Dictionary<int, int>(){
 { 1, 5 }, { 2, 1 }
 }).Build();
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 all keys will be removed after 6 iterations
 
@@ -165,7 +167,7 @@ var randomizer = builder
     { 1, 20 }, { 2, 30 }, { 3, 50 }
 }).Build();
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 all keys will be excluded after 3 iterations
 
@@ -184,7 +186,7 @@ var randomizer = builder
 }).Build();
 randomizer.Add(2, 100);
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 values count will be 10
 
@@ -203,7 +205,7 @@ var randomizer = builder
 }).Build();
 randomizer.Add(2, 100);
 
-var values = randomizer.GetRandom(10);
+var values = randomizer.Draw(10);
 ```
 values count will be 10
 
