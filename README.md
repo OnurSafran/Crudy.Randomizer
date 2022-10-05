@@ -1,9 +1,13 @@
-## About
+# About
 
+It can act like item pool. Value demonstrates possibility
 
+It can act like marbles in a sack. Value demonstrates amount. When you draw, its amount will be reduced
 
-## Usage
+# Usage
 
+*Pool. Value demonstrates possibility*
+-
 ``` c#
 var randomizer = new RandomizerBuilder<int>()
 .Data(new Dictionary<int, int>(){
@@ -83,7 +87,7 @@ values can be;
 ---
 ``` c#
 var randomizer = new RandomizerBuilder<int>(new RandomizerConfiguration(){
-    ExcludeReturnedKeysForUniqueness = true
+    ExcludeOnDrawForUniqueness = true
 })
 .Data(new Dictionary<int, int>(){
     { 1, 20 }, { 2, 30 }, { 3, 50 }
@@ -91,7 +95,7 @@ var randomizer = new RandomizerBuilder<int>(new RandomizerConfiguration(){
 
 var values = randomizer.GetRandom(10);
 ```
-all keys will be excluded after 3 iteration
+all keys will be excluded after 3 iterations
 
 values count will be 3
 
@@ -133,3 +137,40 @@ values will contain only {1}
 
 values can be;
 * %100 --> 1
+
+---
+*Sack. Value demonstrates amount*
+-
+
+```
+var randomizer = new RandomizerBuilder<int>(new RandomizerConfiguration(){
+    RemoveOnDraw = true
+})
+.Data(new Dictionary<int, int>(){
+{ 1, 2 }, { 2, 2 }, { 3, 2 }
+}).Build();
+
+var values = randomizer.GetRandom(10);
+```
+all keys will be removed after 6 iterations
+
+values count will be 6
+
+values will contain two of every keys {1, 2, 3}
+
+---
+```
+var randomizer = new RandomizerBuilder<int>(new RandomizerConfiguration(){
+    RemoveOnDraw = true
+})
+.Data(new Dictionary<int, int>(){
+{ 1, 5 }, { 2, 1 }
+}).Build();
+
+var values = randomizer.GetRandom(10);
+```
+all keys will be removed after 6 iterations
+
+values count will be 6
+
+values will include 5 times 1, 1 time 2

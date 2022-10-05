@@ -163,7 +163,7 @@ public class Randomizer<T> where T : notnull
         return stringBuilder.ToString();
     }
 
-    private T? GetRandom()
+    private T? Draw()
     {
         int counter = 0, rand = Random.Shared.Next(0, _total);
 
@@ -179,23 +179,26 @@ public class Randomizer<T> where T : notnull
                 return entry.Key;
             }
         }
-
+        
         return default(T);
     }
     
-    public List<T> GetRandom(int count)
+    public List<T> Draw(int count)
     {
         var list = new List<T>();
         
         foreach (var i in Enumerable.Range(0, count))
         {
-            var key = GetRandom();
+            var key = Draw();
             
             if(key?.Equals(default(T)) ?? true)
                 continue;
 
-            if(_randomizerConfiguration.ExcludeReturnedKeysForUniqueness)
+            if(_randomizerConfiguration.ExcludeOnDrawForUniqueness)
                 AddExclude(key);
+
+            if(_randomizerConfiguration.RemoveOnDraw)
+                Add(key, -1);
             
             list.Add(key);
         }

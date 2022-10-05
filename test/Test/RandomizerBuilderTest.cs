@@ -14,32 +14,44 @@ public class RandomizerBuilderTest
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = true,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = true,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = true
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = true,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                ExcludeReturnedKeysForUniqueness = true,
-                ClearZeros = true
+                ExcludeOnDrawForUniqueness = true,
+                ClearZeros = true,
+                RemoveOnDraw = true
+            },
+            new RandomizerConfiguration()
+            {
+                AllowNegativeValues = false,
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = true
             }
         };
     }
@@ -50,6 +62,7 @@ public class RandomizerBuilderTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void BuildWithDataRandomizer(int builderIndex)
     {
         var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
@@ -57,7 +70,7 @@ public class RandomizerBuilderTest
             { 1, 100 }
         }).Build();
 
-        randomizer.GetRandom(10).Should().NotBeEmpty();
+        randomizer.Draw(10).Should().NotBeEmpty();
     }
 
     [Theory]
@@ -66,6 +79,7 @@ public class RandomizerBuilderTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void BuildWithExcludeRandomizer(int builderIndex)
     {
         var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
@@ -77,7 +91,7 @@ public class RandomizerBuilderTest
             2
         }).Build();
 
-        randomizer.GetRandom(10).Should().NotBeEmpty().And.NotContain(2);
+        randomizer.Draw(10).Should().NotBeEmpty().And.NotContain(2);
     }
 
     [Theory]
@@ -91,6 +105,9 @@ public class RandomizerBuilderTest
     [InlineData(3, 10, 10)]
     [InlineData(4, 1, 0)]
     [InlineData(4, 10, 0)]
+    [InlineData(5, 1, 1)]
+    [InlineData(5, 100, 100)]
+    [InlineData(5, 110, 100)]
     public void BuildWithConfigurationRandomizer(int builderIndex, int count, int expectedCount)
     {
         var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
@@ -104,7 +121,7 @@ public class RandomizerBuilderTest
         
         randomizer.Add(1, 100);
 
-        var values1 = randomizer.GetRandom(count);
+        var values1 = randomizer.Draw(count);
         values1.Count.Should().Be(expectedCount);
     }
 }

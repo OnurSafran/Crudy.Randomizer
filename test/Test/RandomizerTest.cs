@@ -14,32 +14,44 @@ public class RandomizerTest
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = true,
-                ClearZeros = false
+                ExcludeOnDrawForUniqueness = true,
+                ClearZeros = false,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = false,
-                ExcludeReturnedKeysForUniqueness = false,
-                ClearZeros = true
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = true,
+                RemoveOnDraw = false
             },
             new RandomizerConfiguration()
             {
                 AllowNegativeValues = true,
-                ExcludeReturnedKeysForUniqueness = true,
-                ClearZeros = true
+                ExcludeOnDrawForUniqueness = true,
+                ClearZeros = true,
+                RemoveOnDraw = true
+            },
+            new RandomizerConfiguration()
+            {
+                AllowNegativeValues = false,
+                ExcludeOnDrawForUniqueness = false,
+                ClearZeros = false,
+                RemoveOnDraw = true
             }
         };
     }
@@ -55,13 +67,16 @@ public class RandomizerTest
     [InlineData(3, 10, 10)]
     [InlineData(4, 1, 0)]
     [InlineData(4, 10, 0)]
+    [InlineData(5, 1, 1)]
+    [InlineData(5, 100, 100)]
+    [InlineData(5, 110, 100)]
     public void ShouldGetRandomValuesRequestedAmount(int builderIndex, int count, int expectedCount)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, -100);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(count);
+        var values1 = randomizer.Draw(count);
 
         
         values1.Count.Should().Be(expectedCount);
@@ -73,17 +88,18 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldRemove(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.Remove(1);
         randomizer.Add(2, 100);
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Should().NotIntersectWith(values2);
     }
@@ -94,6 +110,7 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldDecreaseToZero(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
@@ -102,13 +119,13 @@ public class RandomizerTest
         randomizer.Add(4, 100);
         randomizer.Add(4, -100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.Add(1, -100);
         randomizer.Add(2, 100);
         randomizer.Add(3, -100);
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Should().NotIntersectWith(values2);
     }
@@ -119,12 +136,13 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldAddAndRemoveExclude(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.Add(10, 100);
         randomizer.Add(11, 100);
@@ -142,7 +160,7 @@ public class RandomizerTest
             22
         });
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Should().NotIntersectWith(values2);
     }
@@ -153,12 +171,13 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldRemoveAllExcludes(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.Add(2, 100);
         randomizer.AddExclude(1);
@@ -166,7 +185,7 @@ public class RandomizerTest
         randomizer.AddExclude(3);
         randomizer.RemoveAllExcludes();
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Count.Should().NotBe(0);
     }
@@ -177,19 +196,20 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldRemoveWhenExcluded(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.AddExclude(1);
         randomizer.Remove(1);
         randomizer.RemoveExclude(1);
         randomizer.Add(2, 100);
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Should().NotIntersectWith(values2);
     }
@@ -200,12 +220,13 @@ public class RandomizerTest
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void ShouldExcludeWhenRemoved(int builderIndex)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
         randomizer.Add(1, 100);
         
-        var values1 = randomizer.GetRandom(10);
+        var values1 = randomizer.Draw(10);
 
         randomizer.Add(5, 100);
         randomizer.Add(2, 100);
@@ -216,7 +237,7 @@ public class RandomizerTest
         randomizer.Add(6, 100);
         randomizer.AddExclude(6);
         
-        var values2 = randomizer.GetRandom(10);
+        var values2 = randomizer.Draw(10);
 
         values1.Should().NotIntersectWith(values2);
     }
@@ -227,6 +248,7 @@ public class RandomizerTest
     [InlineData(2, new int[]{1})]
     [InlineData(3, new int[]{1})]
     [InlineData(4, new int[]{1,3})]
+    [InlineData(5, new int[]{1})]
     public void ShouldCloneEverything(int builderIndex, int[] notExpectedList)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
@@ -238,7 +260,7 @@ public class RandomizerTest
         var clonedRandomizer = randomizer.Clone();
         
         clonedRandomizer.Add(3, 100);
-        var values2 = clonedRandomizer.GetRandom(50);
+        var values2 = clonedRandomizer.Draw(50);
 
         values2.Should().NotIntersectWith(notExpectedList);
     }
@@ -249,6 +271,7 @@ public class RandomizerTest
     [InlineData(2, new int[]{1})]
     [InlineData(3, new int[]{1})]
     [InlineData(4, new int[]{1,3})]
+    [InlineData(5, new int[]{1})]
     public void ShouldAddAndRemove(int builderIndex, int[] notExpectedList)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
@@ -282,7 +305,7 @@ public class RandomizerTest
         randomizer.Add(randomizer2);
         randomizer.Add(10, 50);
 
-        var values1 = randomizer.GetRandom(50);
+        var values1 = randomizer.Draw(50);
 
         values1.Should().NotIntersectWith(notExpectedList);
     }
@@ -293,6 +316,7 @@ public class RandomizerTest
     [InlineData(2, new int[]{1})]
     [InlineData(3, new int[]{1})]
     [InlineData(4, new int[]{1,3})]
+    [InlineData(5, new int[]{1})]
     public void ShouldAddExistingKeys(int builderIndex, int[] notExpectedList)
     {
         var randomizer = new Randomizer<int>(Configurations[builderIndex]);
@@ -318,7 +342,7 @@ public class RandomizerTest
         });
         
         randomizer.AddExistingKeys(randomizer2);
-        var values1 = randomizer.GetRandom(50);
+        var values1 = randomizer.Draw(50);
 
         values1.Should().NotIntersectWith(notExpectedList);
     }
