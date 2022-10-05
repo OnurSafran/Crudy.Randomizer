@@ -5,11 +5,11 @@ namespace Test;
 
 public class RandomizerTest
 {
-    public readonly List<RandomizerConfiguration> Configurations;
+    private readonly List<RandomizerConfiguration> _configurations;
 
     public RandomizerTest()
     {
-        Configurations = new List<RandomizerConfiguration>()
+        _configurations = new List<RandomizerConfiguration>()
         {
             new RandomizerConfiguration()
             {
@@ -72,7 +72,7 @@ public class RandomizerTest
     [InlineData(5, 110, 100)]
     public void ShouldGetRandomValuesRequestedAmount(int builderIndex, int count, int expectedCount)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, -100);
         randomizer.Add(1, 100);
         
@@ -91,7 +91,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldRemove(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         
         var values1 = randomizer.Draw(10);
@@ -113,7 +113,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldDecreaseToZero(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         randomizer.Add(4, -100);
         randomizer.Add(4, 100);
@@ -139,7 +139,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldAddAndRemoveExclude(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         
         var values1 = randomizer.Draw(10);
@@ -174,7 +174,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldRemoveAllExcludes(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         
         var values1 = randomizer.Draw(10);
@@ -199,7 +199,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldRemoveWhenExcluded(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         
         var values1 = randomizer.Draw(10);
@@ -223,7 +223,7 @@ public class RandomizerTest
     [InlineData(5)]
     public void ShouldExcludeWhenRemoved(int builderIndex)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         
         var values1 = randomizer.Draw(10);
@@ -251,7 +251,7 @@ public class RandomizerTest
     [InlineData(5, new int[]{1})]
     public void ShouldCloneEverything(int builderIndex, int[] notExpectedList)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(1, 100);
         randomizer.Add(2, 100);
         randomizer.Add(3, -100);
@@ -274,8 +274,8 @@ public class RandomizerTest
     [InlineData(5, new int[]{1})]
     public void ShouldAddAndRemove(int builderIndex, int[] notExpectedList)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
-        var randomizer2 = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
+        var randomizer2 = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(new Dictionary<int, int>()
         {
             {1, 100},
@@ -319,7 +319,7 @@ public class RandomizerTest
     [InlineData(5, new int[]{1})]
     public void ShouldAddExistingKeys(int builderIndex, int[] notExpectedList)
     {
-        var randomizer = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer = new Randomizer<int>(_configurations[builderIndex]);
         randomizer.Add(new Dictionary<int, int>()
         {
             {1, 100},
@@ -331,7 +331,7 @@ public class RandomizerTest
         randomizer.AddExclude(1);
         randomizer.Remove(4);
 
-        var randomizer2 = new Randomizer<int>(Configurations[builderIndex]);
+        var randomizer2 = new Randomizer<int>(_configurations[builderIndex]);
         randomizer2.Add(new Dictionary<int, int>()
         {
             {1, 100},

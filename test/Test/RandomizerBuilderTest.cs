@@ -5,11 +5,11 @@ namespace Test;
 
 public class RandomizerBuilderTest
 {
-    public readonly List<RandomizerConfiguration> Configurations;
+    private readonly List<RandomizerConfiguration> _configurations;
 
     public RandomizerBuilderTest()
     {
-        Configurations = new List<RandomizerConfiguration>()
+        _configurations = new List<RandomizerConfiguration>()
         {
             new RandomizerConfiguration()
             {
@@ -65,7 +65,7 @@ public class RandomizerBuilderTest
     [InlineData(5)]
     public void BuildWithDataRandomizer(int builderIndex)
     {
-        var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
+        var randomizer = new RandomizerBuilder<int>(_configurations[builderIndex]).Data(new Dictionary<int, int>()
         {
             { 1, 100 }
         }).Build();
@@ -82,7 +82,7 @@ public class RandomizerBuilderTest
     [InlineData(5)]
     public void BuildWithExcludeRandomizer(int builderIndex)
     {
-        var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
+        var randomizer = new RandomizerBuilder<int>(_configurations[builderIndex]).Data(new Dictionary<int, int>()
         {
             { 1, 100 },
             { 2, 100 }
@@ -110,7 +110,7 @@ public class RandomizerBuilderTest
     [InlineData(5, 110, 100)]
     public void BuildWithConfigurationRandomizer(int builderIndex, int count, int expectedCount)
     {
-        var randomizer = new RandomizerBuilder<int>(Configurations[builderIndex]).Data(new Dictionary<int, int>()
+        var randomizer = new RandomizerBuilder<int>(_configurations[builderIndex]).Data(new Dictionary<int, int>()
         {
             { 1, -100 },
             { 2, 100 }
