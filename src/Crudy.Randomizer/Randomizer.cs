@@ -2,7 +2,7 @@
 
 namespace Crudy.Randomizer; 
 
-public class Randomizer<T> where T : notnull
+public class Randomizer<T> : IRandomizer<T> where T : notnull
 {
     private readonly Dictionary<T, int> _dictionary;
     private readonly List<T> _excludedKeys;
@@ -25,21 +25,11 @@ public class Randomizer<T> where T : notnull
         _randomizerConfiguration = randomizerConfiguration;
     }
 
-    public void Add(Dictionary<T, int> dictionary)
+    public void Add(IDictionary<T, int> dictionary)
     {
         foreach (var entry in dictionary) Add(entry.Key, entry.Value);
     }
-
-    public void Add(Randomizer<T> randomizer)
-    {
-        foreach (var entry in randomizer._dictionary) Add(entry.Key, entry.Value);
-    }
-
-    public void AddExistingKeys(Randomizer<T> randomizer) {
-        foreach (var entry in randomizer._dictionary.Where(entry => _dictionary.ContainsKey(entry.Key)))
-            Add(entry.Key, entry.Value);
-    }
-
+    
     public void Add(T key, int value)
     {
         if (value == 0)
@@ -62,9 +52,9 @@ public class Randomizer<T> where T : notnull
         _dictionary.Remove(key);
     }
 
-    public void Remove(List<T> keys)
+    public void Remove(IList<T> keys)
     {
-        keys.ForEach(Remove);
+        keys.ToList().ForEach(Remove);
     }
 
     public void AddExclude(T key) {
@@ -80,8 +70,8 @@ public class Randomizer<T> where T : notnull
             _total -= _dictionary[key];
     }
 
-    public void AddExcludes(List<T> keys) {
-        keys.ForEach(AddExclude);
+    public void AddExcludes(IList<T> keys) {
+        keys.ToList().ForEach(AddExclude);
     }
 
     public void RemoveExclude(T key) {
@@ -97,8 +87,8 @@ public class Randomizer<T> where T : notnull
             _total += _dictionary[key];
     }
 
-    public void RemoveExcludes(List<T> keys) {
-        keys.ForEach(RemoveExclude);
+    public void RemoveExcludes(IList<T> keys) {
+        keys.ToList().ForEach(RemoveExclude);
     }
 
     public void RemoveAllExcludes() {
@@ -183,7 +173,7 @@ public class Randomizer<T> where T : notnull
         return default(T);
     }
     
-    public List<T> Draw(int count)
+    public IList<T> Draw(int count)
     {
         var list = new List<T>();
         
@@ -210,14 +200,37 @@ public class Randomizer<T> where T : notnull
         return new RandomizerBuilder<T>(_randomizerConfiguration).Data(_dictionary).Exclude(_excludedKeys).Build();
     }
 
+    private void Add(Randomizer<T> randomizer)
+    {
+        foreach (var entry in randomizer._dictionary) Add(entry.Key, entry.Value);
+    }
+
+    private void AddExistingKeys(Randomizer<T> randomizer) {
+        foreach (var entry in randomizer._dictionary.Where(entry => _dictionary.ContainsKey(entry.Key)))
+            Add(entry.Key, entry.Value);
+    }
+    
     public static Randomizer<T> operator +(Randomizer<T> r1, Randomizer<T> r2)
     {
         var randomizer = new Randomizer<T>(r1._randomizerConfiguration);
 
         randomizer.Add(r1);
         randomizer.Add(r2);
+        
         randomizer.AddExcludes(r1._excludedKeys);
         randomizer.AddExcludes(r2._excludedKeys);
+
+        return randomizer;
+    }
+
+    public static Randomizer<T> operator *(Randomizer<T> r1, Randomizer<T> r2)
+    {
+        var randomizer = new Randomizer<T>(r1._randomizerConfiguration);
+
+        randomizer.Add(r1);
+        randomizer.AddExistingKeys(r2);
+        
+        randomizer.AddExcludes(r1._excludedKeys);
 
         return randomizer;
     }

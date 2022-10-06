@@ -302,7 +302,7 @@ public class RandomizerTest
             5,
             6
         });
-        randomizer.Add(randomizer2);
+        randomizer += randomizer2;
         randomizer.Add(10, 50);
 
         var values1 = randomizer.Draw(50);
@@ -341,7 +341,7 @@ public class RandomizerTest
             {6, 100}
         });
         
-        randomizer.AddExistingKeys(randomizer2);
+        randomizer *= randomizer2;
         var values1 = randomizer.Draw(50);
 
         values1.Should().NotIntersectWith(notExpectedList);
