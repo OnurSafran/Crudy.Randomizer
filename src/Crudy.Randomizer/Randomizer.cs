@@ -153,7 +153,7 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return stringBuilder.ToString();
     }
 
-    private T? Draw()
+    public T? Draw()
     {
         int counter = 0, rand = Random.Shared.Next(0, _total);
 
