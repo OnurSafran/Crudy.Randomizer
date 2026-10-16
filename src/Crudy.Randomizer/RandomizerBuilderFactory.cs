@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Crudy.Randomizer;
 
 /// <summary>
@@ -29,6 +31,7 @@ public class RandomizerBuilderFactory
         { RandomizerMode.Custom, new RandomizerConfiguration() }
     };
 
+    /// <summary>Creates a factory in <see cref="RandomizerMode.Custom"/> mode with the given configuration. It is copied.</summary>
     public RandomizerBuilderFactory(RandomizerConfiguration customModeConfiguration)
     {
         SetCustomMode(customModeConfiguration);
@@ -36,13 +39,16 @@ public class RandomizerBuilderFactory
         Mode = RandomizerMode.Custom;
     }
 
+    /// <summary>Creates a factory whose builders use the given mode by default.</summary>
     public RandomizerBuilderFactory(RandomizerMode randomizerMode)
     {
         Mode = randomizerMode;
     }
 
+    /// <summary>The mode used by <see cref="GetBuilder{T}()"/>.</summary>
     public RandomizerMode Mode { get; private set; }
 
+    /// <summary>Changes the mode used by <see cref="GetBuilder{T}()"/>.</summary>
     public void SetMode(RandomizerMode randomizerMode)
     {
         Mode = randomizerMode;

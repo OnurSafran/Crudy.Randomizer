@@ -1,15 +1,20 @@
 # Crudy.Randomizer
 
+[![NuGet](https://img.shields.io/nuget/v/Crudy.Randomizer.svg)](https://www.nuget.org/packages/Crudy.Randomizer)
+[![CI](https://github.com/OnurSafran/Crudy.Randomizer/actions/workflows/ci.yml/badge.svg)](https://github.com/OnurSafran/Crudy.Randomizer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/LICENSE)
+
 Easy to use weighted randomizer for C#.
 
 - **Pool**: weights are chances. Drawing never changes them. Good for loot tables and spawn rates.
 - **Sack**: weights are amounts, like marbles in a sack. Each draw takes one out. Good for decks, bags and limited stock.
 - **Custom**: mix the behaviours yourself, e.g. unique winners only.
 
-Targets .NET 8 and .NET 10.
+Targets .NET 8 and .NET 10. Free to use in any project, including commercial ones ([MIT](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/LICENSE)).
 
 ## Contents
 
+- [Installation](#installation)
 - [Quick start](#quick-start)
 - [Modes](#modes)
 - [Configuration](#configuration)
@@ -22,6 +27,14 @@ Targets .NET 8 and .NET 10.
 - [Examples](#examples)
 - [API overview](#api-overview)
 - [Building and testing](#building-and-testing)
+- [Releasing](#releasing)
+- [License](#license)
+
+## Installation
+
+```bash
+dotnet add package Crudy.Randomizer
+```
 
 ## Quick start
 
@@ -233,19 +246,19 @@ A `RandomizerBuilderFactory` can be shared (e.g. as a DI singleton) once it's co
 
 ## Examples
 
-[`samples/Crudy.Randomizer.Samples`](samples/Crudy.Randomizer.Samples) is a console app with runnable examples:
+[`samples/Crudy.Randomizer.Samples`](https://github.com/OnurSafran/Crudy.Randomizer/tree/master/samples/Crudy.Randomizer.Samples) is a console app with runnable examples:
 
 | Name       | Example |
 |------------|---------|
-| `loot`     | [Loot table (Pool mode)](samples/Crudy.Randomizer.Samples/Examples/LootTableExample.cs) |
-| `sack`     | [Marbles in a sack (Sack mode)](samples/Crudy.Randomizer.Samples/Examples/MarbleSackExample.cs) |
-| `deck`     | [Shuffling a deck of cards](samples/Crudy.Randomizer.Samples/Examples/DeckShuffleExample.cs) |
-| `raffle`   | [Raffle with unique winners](samples/Crudy.Randomizer.Samples/Examples/RaffleExample.cs) |
-| `exclude`  | [Temporarily excluding keys](samples/Crudy.Randomizer.Samples/Examples/ExclusionExample.cs) |
-| `combine`  | [Combining randomizers](samples/Crudy.Randomizer.Samples/Examples/CombiningExample.cs) |
-| `seed`     | [Reproducible draws with a seed](samples/Crudy.Randomizer.Samples/Examples/SeededExample.cs) |
-| `comparer` | [Case-insensitive keys](samples/Crudy.Randomizer.Samples/Examples/ComparerExample.cs) |
-| `trydraw`  | [TryDraw with value-type keys](samples/Crudy.Randomizer.Samples/Examples/TryDrawExample.cs) |
+| `loot`     | [Loot table (Pool mode)](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/LootTableExample.cs) |
+| `sack`     | [Marbles in a sack (Sack mode)](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/MarbleSackExample.cs) |
+| `deck`     | [Shuffling a deck of cards](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/DeckShuffleExample.cs) |
+| `raffle`   | [Raffle with unique winners](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/RaffleExample.cs) |
+| `exclude`  | [Temporarily excluding keys](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/ExclusionExample.cs) |
+| `combine`  | [Combining randomizers](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/CombiningExample.cs) |
+| `seed`     | [Reproducible draws with a seed](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/SeededExample.cs) |
+| `comparer` | [Case-insensitive keys](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/ComparerExample.cs) |
+| `trydraw`  | [TryDraw with value-type keys](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/samples/Crudy.Randomizer.Samples/Examples/TryDrawExample.cs) |
 
 Run all of them, or one by name:
 
@@ -289,7 +302,7 @@ base & event:  Potion:60 , Total:60   (shared keys only)
 
 ## Building and testing
 
-Requires the .NET 10 SDK (see [`global.json`](global.json)).
+Requires the .NET 10 SDK (see [`global.json`](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/global.json)).
 
 ```bash
 dotnet test
@@ -298,3 +311,22 @@ dotnet test
 ```bash
 dotnet pack src/Crudy.Randomizer -c Release -o nupkg
 ```
+
+## Releasing
+
+[CI](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/.github/workflows/ci.yml) builds, tests and packs every push and pull request.
+Pushing a tag like `v1.2.0` also publishes version `1.2.0` (with symbols) to nuget.org:
+
+```bash
+git tag v1.2.0
+```
+
+```bash
+git push origin v1.2.0
+```
+
+This needs a `NUGET_API_KEY` repository secret: create an API key on nuget.org scoped to `Crudy.Randomizer` with push permission.
+
+## License
+
+[MIT](https://github.com/OnurSafran/Crudy.Randomizer/blob/master/LICENSE) © 2022-2026 Onur Safran. You can use, copy, modify and distribute it freely, including in commercial and closed-source projects, as long as the copyright and license notice is kept.

@@ -9,9 +9,9 @@ public static class RaffleExample
     public static void Run()
     {
         var raffle = new RandomizerBuilder<string>(new RandomizerConfiguration()
-            {
-                ExcludeOnDrawForUniqueness = true
-            })
+        {
+            ExcludeOnDrawForUniqueness = true
+        })
             .Data(new Dictionary<string, int>()
             {
                 { "Alice", 5 },

@@ -1,4 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace Crudy.Randomizer;
@@ -14,10 +17,12 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
     private readonly Random _random;
     private long _total;
 
+    /// <summary>Creates an empty randomizer with the default configuration.</summary>
     public Randomizer() : this(new RandomizerConfiguration())
     {
     }
 
+    /// <summary>Creates an empty randomizer.</summary>
     /// <param name="randomizerConfiguration">Copied, so later changes to it don't alter this randomizer.</param>
     /// <param name="random">Source of randomness; pass a seeded instance for reproducible draws. Defaults to <see cref="Random.Shared"/>.</param>
     /// <param name="comparer">Key comparer. Defaults to <see cref="EqualityComparer{T}.Default"/>.</param>
@@ -30,11 +35,13 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         _total = 0;
     }
 
+    /// <inheritdoc />
     public void Add(IEnumerable<KeyValuePair<T, int>> entries)
     {
         foreach (var entry in entries) Add(entry.Key, entry.Value);
     }
 
+    /// <inheritdoc />
     public void Add(T key, int value)
     {
         var exists = _dictionary.TryGetValue(key, out var oldValue);
@@ -60,6 +67,7 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         _dictionary[key] = newValue;
     }
 
+    /// <inheritdoc />
     public void Remove(T key)
     {
         if (!_dictionary.Remove(key, out var value))
@@ -69,11 +77,13 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
             _total -= value;
     }
 
+    /// <inheritdoc />
     public void Remove(IEnumerable<T> keys)
     {
         foreach (var key in keys.ToList()) Remove(key);
     }
 
+    /// <inheritdoc />
     public void AddExclude(T key)
     {
         if (!_excludedKeys.Add(key))
@@ -83,11 +93,13 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
             _total -= value;
     }
 
+    /// <inheritdoc />
     public void AddExcludes(IEnumerable<T> keys)
     {
         foreach (var key in keys.ToList()) AddExclude(key);
     }
 
+    /// <inheritdoc />
     public void RemoveExclude(T key)
     {
         if (!_excludedKeys.Remove(key))
@@ -97,16 +109,19 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
             _total += value;
     }
 
+    /// <inheritdoc />
     public void RemoveExcludes(IEnumerable<T> keys)
     {
         foreach (var key in keys.ToList()) RemoveExclude(key);
     }
 
+    /// <inheritdoc />
     public void RemoveAllExcludes()
     {
         RemoveExcludes(_excludedKeys);
     }
 
+    /// <summary>Lists every key with its weight, then the drawable total, e.g. <c>1:10 , 2:20 , Total:30</c>.</summary>
     public string Print()
     {
         var stringBuilder = new StringBuilder();
@@ -122,13 +137,16 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return stringBuilder.ToString();
     }
 
+    /// <summary>Same as <see cref="Print"/>.</summary>
     public override string ToString() => Print();
 
+    /// <inheritdoc />
     public T? Draw()
     {
         return TryDraw(out var key) ? key : default;
     }
 
+    /// <inheritdoc />
     public bool TryDraw([MaybeNullWhen(false)] out T key)
     {
         if (!TryPick(out key))
@@ -143,6 +161,7 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return true;
     }
 
+    /// <inheritdoc />
     public IList<T> Draw(int count)
     {
         var list = new List<T>();
@@ -264,9 +283,12 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return randomizer;
     }
 
+    /// <summary>Same as <see cref="Union"/>.</summary>
     public static Randomizer<T> operator +(Randomizer<T> r1, Randomizer<T> r2) => r1.Union(r2);
 
+    /// <summary>Same as <see cref="UpdateExisting"/>.</summary>
     public static Randomizer<T> operator *(Randomizer<T> r1, Randomizer<T> r2) => r1.UpdateExisting(r2);
 
+    /// <summary>Same as <see cref="Intersect"/>.</summary>
     public static Randomizer<T> operator &(Randomizer<T> r1, Randomizer<T> r2) => r1.Intersect(r2);
 }
