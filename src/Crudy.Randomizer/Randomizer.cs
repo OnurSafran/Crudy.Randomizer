@@ -1,141 +1,110 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
-namespace Crudy.Randomizer; 
+namespace Crudy.Randomizer;
 
+/// <summary>
+/// Weighted randomizer. Not thread-safe: use one instance per thread or synchronize access.
+/// </summary>
 public class Randomizer<T> : IRandomizer<T> where T : notnull
 {
     private readonly Dictionary<T, int> _dictionary;
-    private readonly List<T> _excludedKeys;
-    private int _total;
+    private readonly HashSet<T> _excludedKeys;
     private readonly RandomizerConfiguration _randomizerConfiguration;
+    private readonly Random _random;
+    private long _total;
 
-    public Randomizer()
+    public Randomizer() : this(new RandomizerConfiguration())
     {
-        _dictionary = new Dictionary<T, int>();
-        _excludedKeys = new List<T>();
-        _total = 0;
-        _randomizerConfiguration = new RandomizerConfiguration();
-    }
-    
-    public Randomizer(RandomizerConfiguration randomizerConfiguration)
-    {
-        _dictionary = new Dictionary<T, int>();
-        _excludedKeys = new List<T>();
-        _total = 0;
-        _randomizerConfiguration = randomizerConfiguration;
     }
 
-    public void Add(IDictionary<T, int> dictionary)
+    /// <param name="randomizerConfiguration">Copied, so later changes to it don't alter this randomizer.</param>
+    /// <param name="random">Source of randomness; pass a seeded instance for reproducible draws. Defaults to <see cref="Random.Shared"/>.</param>
+    /// <param name="comparer">Key comparer. Defaults to <see cref="EqualityComparer{T}.Default"/>.</param>
+    public Randomizer(RandomizerConfiguration randomizerConfiguration, Random? random = null, IEqualityComparer<T>? comparer = null)
     {
-        foreach (var entry in dictionary) Add(entry.Key, entry.Value);
+        _dictionary = new Dictionary<T, int>(comparer);
+        _excludedKeys = new HashSet<T>(comparer);
+        _randomizerConfiguration = randomizerConfiguration.Copy();
+        _random = random ?? Random.Shared;
+        _total = 0;
     }
-    
+
+    public void Add(IEnumerable<KeyValuePair<T, int>> entries)
+    {
+        foreach (var entry in entries) Add(entry.Key, entry.Value);
+    }
+
     public void Add(T key, int value)
     {
-        if (value == 0)
+        var exists = _dictionary.TryGetValue(key, out var oldValue);
+        if (exists && value == 0)
             return;
 
-        if (_dictionary.ContainsKey(key))
-            Change(key, value);
-        else
-            Create(key, value);
+        // Throws OverflowException before any state is touched
+        var newValue = checked(oldValue + value);
+
+        if (newValue < 0 && !_randomizerConfiguration.AllowNegativeValues)
+            newValue = 0;
+
+        if (newValue == 0 && _randomizerConfiguration.ClearZeros)
+        {
+            if (exists)
+                Remove(key);
+            return;
+        }
+
+        if (!_excludedKeys.Contains(key))
+            _total += Math.Max(newValue, 0) - Math.Max(oldValue, 0);
+
+        _dictionary[key] = newValue;
     }
 
     public void Remove(T key)
     {
-        if (!_dictionary.ContainsKey(key))
+        if (!_dictionary.Remove(key, out var value))
             return;
 
-        if (_dictionary[key] > 0 && !_excludedKeys.Contains(key))
-            _total -= _dictionary[key];
-
-        _dictionary.Remove(key);
+        if (value > 0 && !_excludedKeys.Contains(key))
+            _total -= value;
     }
 
-    public void Remove(IList<T> keys)
+    public void Remove(IEnumerable<T> keys)
     {
-        keys.ToList().ForEach(Remove);
+        foreach (var key in keys.ToList()) Remove(key);
     }
 
-    public void AddExclude(T key) {
-        if (_excludedKeys.Contains(key))
-            return;
-        
-        _excludedKeys.Add(key);
-        
-        if(!_dictionary.ContainsKey(key))
-            return;
-
-        if(_dictionary[key] > 0)
-            _total -= _dictionary[key];
-    }
-
-    public void AddExcludes(IList<T> keys) {
-        keys.ToList().ForEach(AddExclude);
-    }
-
-    public void RemoveExclude(T key) {
-        if (!_excludedKeys.Contains(key))
-            return;
-        
-        _excludedKeys.Remove(key);
-        
-        if(!_dictionary.ContainsKey(key))
-            return;
-
-        if(_dictionary[key] > 0)
-            _total += _dictionary[key];
-    }
-
-    public void RemoveExcludes(IList<T> keys) {
-        keys.ToList().ForEach(RemoveExclude);
-    }
-
-    public void RemoveAllExcludes() {
-        RemoveExcludes(_excludedKeys.ToList());
-    }
-
-    private void Create(T t, int value)
+    public void AddExclude(T key)
     {
-        if (!_randomizerConfiguration.AllowNegativeValues && value < 0)
+        if (!_excludedKeys.Add(key))
             return;
-        
-        _dictionary.Add(t, value);
 
-        if (value > 0 && !_excludedKeys.Contains(t))
+        if (_dictionary.TryGetValue(key, out var value) && value > 0)
+            _total -= value;
+    }
+
+    public void AddExcludes(IEnumerable<T> keys)
+    {
+        foreach (var key in keys.ToList()) AddExclude(key);
+    }
+
+    public void RemoveExclude(T key)
+    {
+        if (!_excludedKeys.Remove(key))
+            return;
+
+        if (_dictionary.TryGetValue(key, out var value) && value > 0)
             _total += value;
     }
 
-    private void Change(T t, int value)
+    public void RemoveExcludes(IEnumerable<T> keys)
     {
-        ChangeTotal(t, value);
-
-        ChangeValue(t, value);
+        foreach (var key in keys.ToList()) RemoveExclude(key);
     }
 
-    private void ChangeTotal(T t, int value)
+    public void RemoveAllExcludes()
     {
-        if (_excludedKeys.Contains(t))
-            return;
-
-        var tempTotal = _dictionary[t] + value;
-        if (tempTotal < 0)
-            tempTotal = 0;
-
-        var tempValue = _dictionary[t] > 0 ? _dictionary[t] : 0;
-
-        _total += (tempTotal - tempValue);
-    }
-
-    private void ChangeValue(T t, int value)
-    {
-        _dictionary[t] += value;
-
-        if (_dictionary[t] < 0 && !_randomizerConfiguration.AllowNegativeValues)
-            _dictionary[t] = 0;
-        
-        if (_dictionary[t] == 0 && _randomizerConfiguration.ClearZeros)
-            _dictionary.Remove(t);
+        RemoveExcludes(_excludedKeys);
     }
 
     public string Print()
@@ -153,9 +122,51 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return stringBuilder.ToString();
     }
 
+    public override string ToString() => Print();
+
     public T? Draw()
     {
-        int counter = 0, rand = Random.Shared.Next(0, _total);
+        return TryDraw(out var key) ? key : default;
+    }
+
+    public bool TryDraw([MaybeNullWhen(false)] out T key)
+    {
+        if (!TryPick(out key))
+            return false;
+
+        if (_randomizerConfiguration.ExcludeOnDrawForUniqueness)
+            AddExclude(key);
+
+        if (_randomizerConfiguration.RemoveOnDraw)
+            Add(key, -1);
+
+        return true;
+    }
+
+    public IList<T> Draw(int count)
+    {
+        var list = new List<T>();
+
+        for (var i = 0; i < count; i++)
+        {
+            if (!TryDraw(out var key))
+                break;
+
+            list.Add(key);
+        }
+
+        return list;
+    }
+
+    private bool TryPick([MaybeNullWhen(false)] out T key)
+    {
+        if (_total <= 0)
+        {
+            key = default;
+            return false;
+        }
+
+        long counter = 0, rand = _random.NextInt64(0, _total);
 
         foreach (var entry in _dictionary)
         {
@@ -166,38 +177,30 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
 
             if (counter > rand)
             {
-                return entry.Key;
+                key = entry.Key;
+                return true;
             }
         }
-        
-        return default(T);
+
+        key = default;
+        return false;
     }
-    
-    public IList<T> Draw(int count)
+
+    /// <summary>Independent copy sharing the configuration, random source and comparer.</summary>
+    public Randomizer<T> Clone()
     {
-        var list = new List<T>();
-        
-        foreach (var i in Enumerable.Range(0, count))
-        {
-            var key = Draw();
-            
-            if(key?.Equals(default(T)) ?? true)
-                continue;
+        var randomizer = CreateEmpty();
 
-            if(_randomizerConfiguration.ExcludeOnDrawForUniqueness)
-                AddExclude(key);
+        foreach (var entry in _dictionary) randomizer._dictionary.Add(entry.Key, entry.Value);
+        randomizer._excludedKeys.UnionWith(_excludedKeys);
+        randomizer._total = _total;
 
-            if(_randomizerConfiguration.RemoveOnDraw)
-                Add(key, -1);
-            
-            list.Add(key);
-        }
-
-        return list;
+        return randomizer;
     }
 
-    public Randomizer<T> Clone() {
-        return new RandomizerBuilder<T>(_randomizerConfiguration).Data(_dictionary).Exclude(_excludedKeys).Build();
+    private Randomizer<T> CreateEmpty()
+    {
+        return new Randomizer<T>(_randomizerConfiguration, _random, _dictionary.Comparer);
     }
 
     private void Add(Randomizer<T> randomizer)
@@ -205,33 +208,65 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         foreach (var entry in randomizer._dictionary) Add(entry.Key, entry.Value);
     }
 
-    private void AddExistingKeys(Randomizer<T> randomizer) {
+    private void AddExistingKeys(Randomizer<T> randomizer)
+    {
         foreach (var entry in randomizer._dictionary.Where(entry => _dictionary.ContainsKey(entry.Key)))
             Add(entry.Key, entry.Value);
     }
-    
-    public static Randomizer<T> operator +(Randomizer<T> r1, Randomizer<T> r2)
-    {
-        var randomizer = new Randomizer<T>(r1._randomizerConfiguration);
 
-        randomizer.Add(r1);
-        randomizer.Add(r2);
-        
-        randomizer.AddExcludes(r1._excludedKeys);
-        randomizer.AddExcludes(r2._excludedKeys);
+    // The combining methods below return a new randomizer using this randomizer's
+    // configuration, random source and comparer; both inputs are left unchanged.
+
+    /// <summary>All keys from both randomizers, weights summed. Same as <c>+</c>.</summary>
+    public Randomizer<T> Union(Randomizer<T> other)
+    {
+        var randomizer = CreateEmpty();
+
+        randomizer.Add(this);
+        randomizer.Add(other);
+
+        randomizer.AddExcludes(_excludedKeys);
+        randomizer.AddExcludes(other._excludedKeys);
 
         return randomizer;
     }
 
-    public static Randomizer<T> operator *(Randomizer<T> r1, Randomizer<T> r2)
+    /// <summary>Keys of this randomizer, with weights from <paramref name="other"/> added to the shared keys. Same as <c>*</c>.</summary>
+    public Randomizer<T> UpdateExisting(Randomizer<T> other)
     {
-        var randomizer = new Randomizer<T>(r1._randomizerConfiguration);
+        var randomizer = CreateEmpty();
 
-        randomizer.Add(r1);
-        randomizer.AddExistingKeys(r2);
-        
-        randomizer.AddExcludes(r1._excludedKeys);
+        randomizer.Add(this);
+        randomizer.AddExistingKeys(other);
+
+        randomizer.AddExcludes(_excludedKeys);
 
         return randomizer;
     }
+
+    /// <summary>
+    /// Only keys present in both randomizers, weights summed. Excludes from either side are kept
+    /// for those keys only. Same as <c>&amp;</c>.
+    /// </summary>
+    public Randomizer<T> Intersect(Randomizer<T> other)
+    {
+        var randomizer = CreateEmpty();
+        var sharedKeys = _dictionary.Keys.Where(other._dictionary.ContainsKey).ToList();
+
+        foreach (var key in sharedKeys)
+        {
+            randomizer.Add(key, _dictionary[key]);
+            randomizer.Add(key, other._dictionary[key]);
+        }
+
+        randomizer.AddExcludes(sharedKeys.Where(key => _excludedKeys.Contains(key) || other._excludedKeys.Contains(key)));
+
+        return randomizer;
+    }
+
+    public static Randomizer<T> operator +(Randomizer<T> r1, Randomizer<T> r2) => r1.Union(r2);
+
+    public static Randomizer<T> operator *(Randomizer<T> r1, Randomizer<T> r2) => r1.UpdateExisting(r2);
+
+    public static Randomizer<T> operator &(Randomizer<T> r1, Randomizer<T> r2) => r1.Intersect(r2);
 }

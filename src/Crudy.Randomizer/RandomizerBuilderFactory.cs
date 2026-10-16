@@ -1,62 +1,68 @@
 namespace Crudy.Randomizer;
 
+/// <summary>
+/// Hands out builders preconfigured for a <see cref="RandomizerMode"/>. Safe to share once configured;
+/// <see cref="SetMode"/> and <see cref="SetCustomMode"/> are not thread-safe, so call them at startup only.
+/// </summary>
 public class RandomizerBuilderFactory
 {
-    private RandomizerMode _mode;
-    
-    private readonly Dictionary<RandomizerMode, RandomizerConfiguration> _configurationMap =
-        new Dictionary<RandomizerMode, RandomizerConfiguration>()
+    private readonly Dictionary<RandomizerMode, RandomizerConfiguration> _configurationMap = new()
+    {
         {
+            RandomizerMode.Pool, new RandomizerConfiguration()
             {
-                RandomizerMode.Pool, new RandomizerConfiguration()
-                {
-                    AllowNegativeValues = true,
-                    ClearZeros = true,
-                    ExcludeOnDrawForUniqueness = false,
-                    RemoveOnDraw = false
-                }
-            },
+                AllowNegativeValues = true,
+                ClearZeros = true,
+                ExcludeOnDrawForUniqueness = false,
+                RemoveOnDraw = false
+            }
+        },
+        {
+            RandomizerMode.Sack, new RandomizerConfiguration()
             {
-                RandomizerMode.Sack, new RandomizerConfiguration()
-                {
-                    AllowNegativeValues = false,
-                    ClearZeros = true,
-                    ExcludeOnDrawForUniqueness = false,
-                    RemoveOnDraw = true
-                }
-            },
-            { RandomizerMode.Custom, new RandomizerConfiguration() }
-        };
-    
+                AllowNegativeValues = false,
+                ClearZeros = true,
+                ExcludeOnDrawForUniqueness = false,
+                RemoveOnDraw = true
+            }
+        },
+        { RandomizerMode.Custom, new RandomizerConfiguration() }
+    };
+
     public RandomizerBuilderFactory(RandomizerConfiguration customModeConfiguration)
     {
         SetCustomMode(customModeConfiguration);
-        
-        _mode = RandomizerMode.Custom;
+
+        Mode = RandomizerMode.Custom;
     }
-    
+
     public RandomizerBuilderFactory(RandomizerMode randomizerMode)
     {
-        SetConfiguration(randomizerMode);
+        Mode = randomizerMode;
     }
-    
-    public void SetConfiguration(RandomizerMode randomizerMode)
+
+    public RandomizerMode Mode { get; private set; }
+
+    public void SetMode(RandomizerMode randomizerMode)
     {
-        _mode = randomizerMode;
+        Mode = randomizerMode;
     }
-    
+
+    /// <summary>Sets the configuration used by <see cref="RandomizerMode.Custom"/>. It is copied.</summary>
     public void SetCustomMode(RandomizerConfiguration configuration)
     {
-        _configurationMap[RandomizerMode.Custom] = configuration;
+        _configurationMap[RandomizerMode.Custom] = configuration.Copy();
     }
 
+    /// <summary>Builder configured for the current <see cref="Mode"/>.</summary>
     public RandomizerBuilder<T> GetBuilder<T>() where T : notnull
     {
-        return new RandomizerBuilder<T>(_configurationMap[_mode]);
+        return new RandomizerBuilder<T>(_configurationMap[Mode]);
     }
 
-    public RandomizerBuilder<T> GetBuilder<T>(RandomizerConfiguration configuration) where T : notnull
+    /// <summary>Builder configured for <paramref name="mode"/>, ignoring the current <see cref="Mode"/>.</summary>
+    public RandomizerBuilder<T> GetBuilder<T>(RandomizerMode mode) where T : notnull
     {
-        return new RandomizerBuilder<T>(configuration);
+        return new RandomizerBuilder<T>(_configurationMap[mode]);
     }
 }

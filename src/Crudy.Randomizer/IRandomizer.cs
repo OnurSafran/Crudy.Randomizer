@@ -1,14 +1,15 @@
 namespace Crudy.Randomizer;
 
-public interface IRandomizer<T> : IReadonlyRandomizer<T> where T : notnull
+public interface IRandomizer<T> : IReadOnlyRandomizer<T> where T : notnull
 {
-    void Add(IDictionary<T, int> dictionary);
+    /// <summary>Adds each entry's weight; duplicate keys are summed.</summary>
+    void Add(IEnumerable<KeyValuePair<T, int>> entries);
     void Add(T key, int value);
     void Remove(T key);
-    void Remove(IList<T> keys);
+    void Remove(IEnumerable<T> keys);
     void AddExclude(T key);
-    void AddExcludes(IList<T> keys);
+    void AddExcludes(IEnumerable<T> keys);
     void RemoveExclude(T key);
-    void RemoveExcludes(IList<T> keys);
+    void RemoveExcludes(IEnumerable<T> keys);
     void RemoveAllExcludes();
 }

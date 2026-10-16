@@ -1,9 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>Crudy.Randomizer</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Onur Safran</Authors>
+        <Description>Easy to use weighted item randomizer for C#. Works as an item pool or as marbles in a sack.</Description>
+        <PackageTags>random;randomizer;weighted;loot;pool</PackageTags>
+        <RepositoryUrl>https://github.com/OnurSafran/Crudy.Randomizer</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/OnurSafran/Crudy.Randomizer</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
 </Project>
