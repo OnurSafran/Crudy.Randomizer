@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>Crudy.Randomizer</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         <Authors>Onur Safran</Authors>
         <Copyright>Copyright (c) 2022-2026 Onur Safran</Copyright>
         <Description>Easy to use weighted randomizer for C#. Works as an item pool (weights are chances) or as marbles in a sack (weights are amounts), with exclusions, unique draws, seeding and combining.</Description>
@@ -29,8 +29,9 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-        <!-- Checks the package for API differences between target frameworks -->
+        <!-- Checks the package for API differences between target frameworks, and against the last release -->
         <EnablePackageValidation>true</EnablePackageValidation>
+        <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
     </PropertyGroup>
 
     <!-- Reproducible builds in CI -->

@@ -7,8 +7,15 @@ using System.Text;
 namespace Crudy.Randomizer;
 
 /// <summary>
-/// Weighted randomizer. Not thread-safe: use one instance per thread or synchronize access.
+/// Weighted randomizer. Not thread-safe for changes: use one instance per thread or synchronize access.
 /// </summary>
+/// <remarks>
+/// One instance can be shared by several threads only while nothing changes it: no <c>Add</c>, <c>Remove</c> or
+/// exclude calls, <see cref="RandomizerConfiguration.RemoveOnDraw"/> and
+/// <see cref="RandomizerConfiguration.ExcludeOnDrawForUniqueness"/> off (as in <see cref="RandomizerMode.Pool"/>),
+/// and a thread-safe random source: the default <see cref="Random.Shared"/>, or a <see cref="Random"/> of the
+/// thread's own passed to each draw.
+/// </remarks>
 public class Randomizer<T> : IRandomizer<T> where T : notnull
 {
     private readonly Dictionary<T, int> _dictionary;
@@ -141,15 +148,34 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
     public override string ToString() => Print();
 
     /// <inheritdoc />
-    public T? Draw()
+    public T? Draw() => Draw(_random);
+
+    /// <summary>
+    /// Draws one key using <paramref name="random"/> instead of this randomizer's own random source,
+    /// or <c>default</c> when nothing can be drawn. Prefer <see cref="TryDraw(Random, out T)"/> for value types.
+    /// </summary>
+    /// <param name="random">Used for this draw only, e.g. <c>new Random(seed)</c> to rebuild a result from its own seed.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="random"/> is <c>null</c>.</exception>
+    public T? Draw(Random random)
     {
-        return TryDraw(out var key) ? key : default;
+        return TryDraw(random, out var key) ? key : default;
     }
 
     /// <inheritdoc />
-    public bool TryDraw([MaybeNullWhen(false)] out T key)
+    public bool TryDraw([MaybeNullWhen(false)] out T key) => TryDraw(_random, out key);
+
+    /// <summary>
+    /// Draws one key using <paramref name="random"/> instead of this randomizer's own random source;
+    /// returns <c>false</c> when nothing can be drawn.
+    /// </summary>
+    /// <param name="random">Used for this draw only, e.g. <c>new Random(seed)</c> to rebuild a result from its own seed.</param>
+    /// <param name="key">The drawn key, or <c>default</c> when nothing was drawn.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="random"/> is <c>null</c>.</exception>
+    public bool TryDraw(Random random, [MaybeNullWhen(false)] out T key)
     {
-        if (!TryPick(out key))
+        ArgumentNullException.ThrowIfNull(random);
+
+        if (!TryPick(random, out key))
             return false;
 
         if (_randomizerConfiguration.ExcludeOnDrawForUniqueness)
@@ -162,13 +188,24 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
     }
 
     /// <inheritdoc />
-    public IList<T> Draw(int count)
+    public IList<T> Draw(int count) => Draw(count, _random);
+
+    /// <summary>
+    /// Draws up to <paramref name="count"/> keys using <paramref name="random"/> instead of this randomizer's
+    /// own random source, stopping early when nothing is left to draw.
+    /// </summary>
+    /// <param name="count">Most keys to draw.</param>
+    /// <param name="random">Used for these draws only, e.g. <c>new Random(seed)</c> to rebuild a result from its own seed.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="random"/> is <c>null</c>.</exception>
+    public IList<T> Draw(int count, Random random)
     {
+        ArgumentNullException.ThrowIfNull(random);
+
         var list = new List<T>();
 
         for (var i = 0; i < count; i++)
         {
-            if (!TryDraw(out var key))
+            if (!TryDraw(random, out var key))
                 break;
 
             list.Add(key);
@@ -177,7 +214,7 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
         return list;
     }
 
-    private bool TryPick([MaybeNullWhen(false)] out T key)
+    private bool TryPick(Random random, [MaybeNullWhen(false)] out T key)
     {
         if (_total <= 0)
         {
@@ -185,7 +222,7 @@ public class Randomizer<T> : IRandomizer<T> where T : notnull
             return false;
         }
 
-        long counter = 0, rand = _random.NextInt64(0, _total);
+        long counter = 0, rand = random.NextInt64(0, _total);
 
         foreach (var entry in _dictionary)
         {

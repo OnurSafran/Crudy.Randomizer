@@ -139,6 +139,9 @@ if (randomizer.TryDraw(out var key))   // one key, or false when nothing can be 
 }
 ```
 
+On a `Randomizer<T>`, each also takes a `Random` used for that call only: `Draw(5, random)`, `Draw(random)`,
+`TryDraw(random, out var key)`. See [One seed per result](#one-seed-per-result).
+
 `Draw()` returns `default` when nothing can be drawn. For value types that's ambiguous: `0`, or the first member of an enum, is also a valid key. Use `TryDraw` to tell them apart:
 
 ```c#
@@ -209,6 +212,23 @@ var randomizer = new RandomizerBuilder<string>()
 
 Both can also be passed straight to the constructor: `new Randomizer<string>(configuration, random, comparer)`.
 
+### One seed per result
+
+A seeded `Random` given to the builder is one stream: each draw depends on the ones before it. When every result must
+be rebuildable from its own seed (a generated item, a daily reward), build the randomizer once and pass a new seeded
+`Random` to each draw:
+
+```c#
+static readonly Randomizer<Rarity> Rarities = new RandomizerBuilder<Rarity>()
+    .Data(new Dictionary<Rarity, int>() { { Rarity.Common, 70 }, { Rarity.Rare, 25 }, { Rarity.Epic, 5 } })
+    .Build();
+
+Rarity RarityOf(int itemSeed) => Rarities.Draw(new Random(itemSeed));   // same seed, same rarity, every time
+```
+
+These draws don't touch the randomizer's own random source. A seeded `System.Random` isn't guaranteed to give the
+same numbers across major .NET versions, so pass your own `Random` subclass if results must survive upgrades.
+
 ## Dependency injection
 
 ```c#
@@ -241,7 +261,16 @@ public class LootService(RandomizerBuilderFactory factory)
 
 ## Thread safety
 
-A `Randomizer<T>` is not thread-safe: use one per thread or lock around it.
+A `Randomizer<T>` is not thread-safe for changes: use one per thread or lock around it.
+
+One randomizer can be shared by many threads (e.g. a `static readonly` loot table) as long as nothing changes it:
+
+- no `Add`, `Remove` or exclude calls after it's built,
+- `RemoveOnDraw` and `ExcludeOnDrawForUniqueness` off, as in Pool mode,
+- a thread-safe random source: the default `Random.Shared`, or a `Random` of the thread's own passed to each draw.
+
+A seeded `Random` given to the builder is not thread-safe, so don't share that randomizer across threads.
+
 A `RandomizerBuilderFactory` can be shared (e.g. as a DI singleton) once it's configured; call `SetMode` and `SetCustomMode` only at startup.
 
 ## Examples
@@ -296,7 +325,7 @@ base & event:  Potion:60 , Total:60   (shared keys only)
 | `RandomizerBuilderFactory` | `Mode`, `SetMode`, `SetCustomMode`, `GetBuilder<T>()`, `GetBuilder<T>(mode)` |
 | `IReadOnlyRandomizer<T>` | `Draw()`, `Draw(count)`, `TryDraw` |
 | `IRandomizer<T>` | everything above, plus `Add`, `Remove`, `AddExclude(s)`, `RemoveExclude(s)`, `RemoveAllExcludes` |
-| `Randomizer<T>` | everything above, plus `Clone`, `Union` (`+`), `UpdateExisting` (`*`), `Intersect` (`&`), `Print` / `ToString` |
+| `Randomizer<T>` | everything above, plus `Draw(random)`, `Draw(count, random)`, `TryDraw(random, out key)`, `Clone`, `Union` (`+`), `UpdateExisting` (`*`), `Intersect` (`&`), `Print` / `ToString` |
 
 `IReadOnlyRandomizer<T>` can't change weights directly, but a draw can still consume or exclude keys when `RemoveOnDraw` or `ExcludeOnDrawForUniqueness` is on.
 
